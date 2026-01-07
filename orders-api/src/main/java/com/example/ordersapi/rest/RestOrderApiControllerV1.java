@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/orders")
-public class RestOrdersApiControllerV1 {
+public class RestOrderApiControllerV1 {
 
     @PostMapping
     public ResponseEntity<?> createOrder() {
