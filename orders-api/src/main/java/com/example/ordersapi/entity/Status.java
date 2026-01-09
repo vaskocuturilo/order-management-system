@@ -2,6 +2,6 @@ package com.example.ordersapi.entity;
 
 public enum Status {
 
-    ACTIVE, DELETED;
+    NEW, PAID, SHIPPED, CANCELLED
 }
 
