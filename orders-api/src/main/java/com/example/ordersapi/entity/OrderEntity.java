@@ -22,4 +22,15 @@ public class OrderEntity {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    public Long getId() {
+        return id;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }
