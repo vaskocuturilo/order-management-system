@@ -9,7 +9,7 @@ public interface IOrderService {
 
     OrderEntity createOrder(OrderEntity order);
 
-    void triggerAsynchronousPayment(Long id);
+    void triggerAsynchronousPayment(OrderDto order);
 
     OrderEntity retrieveOrder(Long id);
 

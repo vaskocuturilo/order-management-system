@@ -22,7 +22,6 @@ public class KafkaProducerService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-
     public void sendMessage(final OrderDto orderDto) {
         final Message<OrderDto> message = MessageBuilder
                 .withPayload(orderDto)
