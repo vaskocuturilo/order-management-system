@@ -3,23 +3,21 @@ package com.example.ordersapi.rest;
 import com.example.ordersapi.dto.OrderDto;
 import com.example.ordersapi.entity.OrderEntity;
 import com.example.ordersapi.service.IOrderService;
-import com.example.ordersapi.service.OrderServiceImplementation;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@Slf4j
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/orders")
 public class RestOrderApiControllerV1 {
 
     private final IOrderService orderService;
-
-    public RestOrderApiControllerV1(IOrderService orderService) {
-        this.orderService = orderService;
-    }
 
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(@RequestBody final OrderDto order) {
@@ -32,9 +30,16 @@ public class RestOrderApiControllerV1 {
                 .body(orderDto);
     }
 
-    @PostMapping("/{id}/pay")
-    public ResponseEntity<Void> triggerAsynchronousPayment(@PathVariable("id") final Long id) {
-        return ResponseEntity.ok().build();
+    @PostMapping("/pay")
+    public ResponseEntity<String> triggerAsynchronousPayment(@RequestBody final OrderDto order) {
+        orderService.triggerAsynchronousPayment(order);
+
+        log.info("The message {} has been send to the pay system", order);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("The message to pay system has been send successfully");
     }
 
     @GetMapping("/{id}")
