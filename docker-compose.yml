@@ -1,7 +1,7 @@
 services:
-  database:
-    hostname: database-regions
-    container_name: database-regions
+  postgres:
+    hostname: postgres
+    container_name: postgres_container
     image: postgres:17-alpine3.19
     restart: unless-stopped
     ports:
@@ -64,6 +64,30 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+    networks:
+      - app-network
+
+    depends_on: [ postgres ]
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    restart: always
+    ports:
+      - "5540:5540"
+
+    networks:
+      - app-network
+
+    depends_on: [ redis ]
+
+    volumes:
+      - redis-insight:/data
+
   broker1:
     image: apache/kafka:latest
     container_name: broker1
@@ -110,8 +134,10 @@ services:
     depends_on: [ broker1 ]
 
 
-volumes:
-  postgres-data:
-
 networks:
   app-network:
+
+volumes:
+  postgres-data:
+  redis-insight:
+
