@@ -19,7 +19,7 @@ public class OrderCacheService {
 
     public void cacheCountry(OrderEntity order) {
         final String id = "orderId:" + order.getId();
-        final String status = "Statis:" + order.getStatus();
+        final String status = "Status:" + order.getStatus();
 
 
         redisTemplate.opsForList().rightPush(id, order);
@@ -29,8 +29,8 @@ public class OrderCacheService {
 
     }
 
-    public List<OrderEntity> getOrderById(String orderId) {
-        final String listKey = "orderId::" + orderId;
+    public List<OrderEntity> getOrderById(Long orderId) {
+        final String listKey = "orderId:" + orderId;
         final var cachedList = redisTemplate.opsForList().range(listKey, 0, -1);
 
         if (cachedList == null || cachedList.isEmpty()) {

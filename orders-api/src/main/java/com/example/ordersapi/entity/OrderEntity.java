@@ -1,11 +1,13 @@
 package com.example.ordersapi.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "orders")
+@Data
 public class OrderEntity {
 
     @Id
@@ -21,16 +23,4 @@ public class OrderEntity {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private Status status;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
 }
