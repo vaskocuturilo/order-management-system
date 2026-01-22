@@ -1,11 +1,10 @@
 services:
   postgres:
-    hostname: postgres
-    container_name: postgres_container
-    image: postgres:17-alpine3.19
+    image: postgres:17-alpine3.23
+    container_name: postgres
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -15,37 +14,6 @@ services:
     volumes:
       - ../2. Init Database:/docker-entrypoint-initdb.d
       - postgres-data:/var/lib/postgresql/data
-
-    command:
-      - "postgres"
-      - "-c"
-      - "max_connections=50"
-      - "-c"
-      - "shared_buffers=1GB"
-      - "-c"
-      - "effective_cache_size=4GB"
-      - "-c"
-      - "work_mem=16MB"
-      - "-c"
-      - "maintenance_work_mem=512MB"
-      - "-c"
-      - "random_page_cost=1.1"
-      - "-c"
-      - "temp_file_limit=10GB"
-      - "-c"
-      - "log_min_duration_statement=200ms"
-      - "-c"
-      - "idle_in_transaction_session_timeout=10s"
-      - "-c"
-      - "lock_timeout=1s"
-      - "-c"
-      - "statement_timeout=60s"
-      - "-c"
-      - "shared_preload_libraries=pg_stat_statements"
-      - "-c"
-      - "pg_stat_statements.max=10000"
-      - "-c"
-      - "pg_stat_statements.track=all"
 
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
@@ -63,6 +31,28 @@ services:
 
     networks:
       - app-network
+
+  api:
+    build: ./orders-api
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "4"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+    networks:
+      - app-network
+
+    depends_on: [ postgres ]
 
   redis:
     image: redis:latest
@@ -88,9 +78,9 @@ services:
     volumes:
       - redis-insight:/data
 
-  broker1:
+  broker:
     image: apache/kafka:latest
-    container_name: broker1
+    container_name: broker
     restart: always
     ports:
       - "9092:9092"
@@ -99,8 +89,8 @@ services:
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker1:9092'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker1:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:9093'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CLUSTER_ID: 'r4zt_wrqTRuT7W2NJsB_GA'
@@ -109,10 +99,11 @@ services:
       - ./.volumes/kafka/data:/var/lib/kafka/data
 
     healthcheck:
-      test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list" ]
-      interval: 10s
-      timeout: 10s
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list" ]
+      interval: 20s
+      timeout: 15s
       retries: 5
+      start_period: 30s
 
     networks:
       - app-network
@@ -125,14 +116,13 @@ services:
       - "8092:8080"
     environment:
       - KAFKA_CLUSTERS_0_NAME=local-kafka-cluster
-      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=broker1:9092
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=broker:9092
       - DYNAMIC_CONFIG_ENABLED=true
 
     networks:
       - app-network
 
-    depends_on: [ broker1 ]
-
+    depends_on: [ broker ]
 
 networks:
   app-network:
