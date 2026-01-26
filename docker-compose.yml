@@ -36,9 +36,13 @@ services:
     ports:
       - "8080:8080"
     environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:9094
+
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+
+      KAFKA_URL: ${KAFKA_URL}
 
     logging:
       driver: "json-file"
@@ -51,7 +55,11 @@ services:
     networks:
       - app-network
 
-    depends_on: [ postgres ]
+    depends_on:
+      postgres:
+        condition: service_started
+      broker:
+        condition: service_healthy
 
   redis:
     image: redis:latest
@@ -87,11 +95,11 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:9092'
+      KAFKA_LISTENERS: 'EXTERNAL://0.0.0.0:9092,INTERNAL://0.0.0.0:9094,CONTROLLER://:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'EXTERNAL://localhost:9092,INTERNAL://broker:9094'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:9093'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'INTERNAL'
       KAFKA_CLUSTER_ID: 'r4zt_wrqTRuT7W2NJsB_GA'
 
     volumes:
@@ -121,7 +129,9 @@ services:
     networks:
       - app-network
 
-    depends_on: [ broker ]
+    depends_on:
+      broker:
+        condition: service_healthy
 
 networks:
   app-network:
