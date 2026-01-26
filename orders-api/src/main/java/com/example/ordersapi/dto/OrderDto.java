@@ -24,4 +24,8 @@ public class OrderDto {
         //add builder
         return new OrderDto();
     }
+
+    public Long getId() {
+        return id;
+    }
 }
