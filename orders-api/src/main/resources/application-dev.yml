@@ -20,5 +20,14 @@ spring:
       properties:
         spring.json.trusted.packages: com.example.ordersapi
 
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: myGroup
+      auto-offset-reset: earliest
+      key-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.example.apiconsumer
+
 topic:
   name: sandbox
