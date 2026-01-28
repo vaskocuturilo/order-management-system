@@ -26,5 +26,3 @@ PUT /api/v1/orders/{id}/status — change status only
 
 DELETE /api/v1/orders/{id} — delete order (soft delete)
 DELETE /api/v1/orders/{id} — delete order (hard delete)
-
-Mock System Design Interview. Design a simplified order management system for an online store.
